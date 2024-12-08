@@ -98,7 +98,7 @@
     let score = 0;
     const scoreDisplay = document.getElementById('score');
 
-    function createIceCube() {
+    function throwIceCube() {
       const iceCube = document.createElement('div');
       iceCube.className = 'ice-cube';
       iceCube.textContent = '🧊';
@@ -138,6 +138,7 @@
       }
       requestAnimationFrame(animate); 
 
+      iceCube.addEventListener('click', onIceCubeClick);
       function onIceCubeClick() {
         iceCube.removeEventListener('click', onIceCubeClick);
         iceCube.style.transition = 'opacity 0.5s ease-out';
@@ -149,9 +150,8 @@
         setTimeout(() => {
           gameArea.removeChild(iceCube);
         }, 500);
+        updateInterval()
       }
-      iceCube.addEventListener('click', onIceCubeClick);
-
     }
 
     const steps = 3 
@@ -208,15 +208,29 @@
       movingImage.style.top =`${gameAreaRect.y + gameAreaRect.height}px`; 
     }
 
+    const spawnDeltaByScore = {
+      0: 4000,
+      10: 3000,
+      20: 2000,
+      30: 1000,
+      40: 500,
+    }
     function startGame() {
       displayMessage("A jugar!")
       currentStep = 0
       score = 0
       scoreDisplay.textContent = `Puntos: ${score}`;
-      createIceCube()
-      interval = setInterval(createIceCube, 4000);
+      throwIceCube()
+      interval = setInterval(throwIceCube, 4000);
       initImage();
     }
+    function updateInterval() {
+      const delta = spawnDeltaByScore[score] || 4000;
+      clearInterval(interval);  
+      interval = setInterval(() => {
+        throwIceCube();
+      }, delta);
+    }      
   </script>
 </body>
 </html>
