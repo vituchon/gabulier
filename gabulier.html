@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="./toastr.css">
+  <script type="text/javascript" src="./toastr.js"></script>
+
+  <title>Gabulier</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    #game-area {
+      width: 80vw; 
+      height: 70vh; 
+      background-color: lightblue;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 2px solid #0077cc;
+      border-radius: 10px;
+    }
+    #target {
+      position: absolute;
+      font-size: 2em;
+    }
+    .ice-cube {
+      position: absolute;
+      font-size: 1.5em;
+      animation: fall 2s ease-out forwards;
+    }
+    #moving-image {
+      position: absolute;
+      left: -100px; /* Fuera del área visible */
+      transform: translateX(0); /* Sin movimiento inicial */
+      transition: transform 0.5s ease-in-out; /* Suavizado entre pasos */
+      width: 80px; /* Ajusta según tu imagen */
+      height: auto;
+    }
+    #counter {
+      margin: auto;
+      font-size: 2em;
+      color: red;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="score" style="font-size: 2em; color: rebeccapurple;">Puntos: 0</div>
+  <span>No le pongas hielo al vino!! 😤</span>
+  <span>Sacalo con un click de la mesa!... si llega a la copa gaby no toma 😱</span>
+  <span>El buen gusto y la puntería importan!</span>
+  <div id="game-area" class="centered-div">
+    <div id="target" class="target">🍷</div>
+    <div id="counter">2</div>
+  </div>
+  <img id="moving-image" src="./gabuneutral.png" />
+
+  <script>
+      const iceCube = document.createElement('div');
+      iceCube.className = 'ice-cube';
+      iceCube.textContent = '🧊';
+      document.body.appendChild(iceCube);
+      const iceCubeRect = iceCube.getBoundingClientRect();
+      document.body.removeChild(iceCube);
+
+      function displayMessage(message) {
+        Toastify({
+          text: message,
+          duration: 3000,
+          newWindow: true,
+          gravity: "top",
+          position: 'left',
+          style: {
+            "font-size": "1.5em",
+            "border-radius": "0.5em",
+          }
+        }).showToast();
+      }
+
+  </script>
+  <script>
+    const gameArea = document.getElementById('game-area');
+    const target = document.getElementById('target');
+    
+    const targetX = gameArea.clientWidth * (0.3 + Math.random() * 0.3); 
+    const targetY = gameArea.clientHeight
+    target.style.left = `${targetX}px`;
+    target.style.top = `${targetY}px`;
+
+    let score = 0;
+    const scoreDisplay = document.getElementById('score');
+
+    function createIceCube() {
+      const iceCube = document.createElement('div');
+      iceCube.className = 'ice-cube';
+      iceCube.textContent = '🧊';
+      
+      const startX = Math.random() > 0.5 ? - parseFloat(iceCubeRect.width) : window.innerWidth; 
+      const startY = targetY - window.innerHeight * ( 0.4 * Math.random());
+      iceCube.style.left = `${startX}px`;
+      iceCube.style.top = `${startY}px`;
+
+      gameArea.appendChild(iceCube);
+
+      const duration = 3000; 
+      const startTime = performance.now();
+      var g = 500 + (Math.random() * 500)
+      var trusth = 0.03
+
+      function animate(currentTime) {
+        const elapsed = currentTime - startTime; 
+        const t = Math.min(elapsed / duration, 1); 
+
+        const x = (1 - t) * startX + t * targetX; 
+        const y = startY + t * (t - 1) * g + t * (targetY - startY); 
+        iceCube.style.left = `${x}px`;
+        iceCube.style.top = `${y}px`;
+
+        if (t < 1) {
+          requestAnimationFrame(animate); 
+        } else {
+          const hasBeenRemovedFromDOM = !iceCube.parentNode
+          if (!hasBeenRemovedFromDOM) {
+            gameArea.removeChild(iceCube); 
+            onIceCubeLand()
+          }
+        }
+        g += trusth
+        trusth *= 1.023
+      }
+      requestAnimationFrame(animate); 
+
+      function onIceCubeClick() {
+        iceCube.removeEventListener('click', onIceCubeClick);
+        iceCube.style.transition = 'opacity 0.5s ease-out';
+        iceCube.style.opacity = '0';
+
+        score += 10;
+        scoreDisplay.textContent = `Puntos: ${score}`;
+
+        setTimeout(() => {
+          gameArea.removeChild(iceCube);
+        }, 500);
+      }
+      iceCube.addEventListener('click', onIceCubeClick);
+
+    }
+
+    const steps = 3 
+    let currentStep = 0; 
+
+    const movingImage = document.getElementById('moving-image');
+    const movingImageRect = movingImage.getBoundingClientRect();
+    const gameAreaRect = gameArea.getBoundingClientRect();
+    const totalDistance = gameAreaRect.width - movingImageRect.width; 
+    const stepDistance = totalDistance / steps; 
+    var hasLost = false
+    function onIceCubeLand() {
+      if (hasLost) {
+        return
+      }
+      if (currentStep < steps) {
+        currentStep++
+        moveImage(currentStep)
+        hasLost = currentStep == steps
+      } 
+      if (hasLost) {
+        clearInterval(interval)
+        displayMessage("has perdido!")
+      }
+    }
+
+    let secondsToStart = 1
+    document.getElementById('counter').innerText = secondsToStart
+    let gameStartInterval = setInterval(() => {
+      secondsToStart--
+      if (secondsToStart == 0) {
+        clearInterval(gameStartInterval)
+        startGame()
+        setTimeout(() => {
+          document.getElementById('counter').innerText = ""
+        }, 500)
+      }
+      document.getElementById('counter').innerText = secondsToStart
+    }, 1000)
+
+    const originalSrc = movingImage.src; 
+    const movingSrc = "./gabushock.png"
+    movingImage.addEventListener("transitionend", () => {
+      movingImage.src = originalSrc;
+    });
+    function moveImage(step) {
+      const newPosition = stepDistance * step;
+      movingImage.src = movingSrc;
+      movingImage.style.transform = `translateX(${newPosition}px)`; 
+    }
+
+    function initImage() {
+      movingImage.style.left =`${gameAreaRect.x}px`; 
+      movingImage.style.top =`${gameAreaRect.y + gameAreaRect.height}px`; 
+    }
+
+    function startGame() {
+      displayMessage("A jugar!")
+      currentStep = 0
+      score = 0
+      scoreDisplay.textContent = `Puntos: ${score}`;
+      createIceCube()
+      interval = setInterval(createIceCube, 4000);
+      initImage();
+    }
+  </script>
+</body>
+</html>
