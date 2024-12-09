@@ -98,12 +98,13 @@
     let score = 0;
     const scoreDisplay = document.getElementById('score');
     const durationByScore = {
-      0: 5000,
-      10: 4500,
-      20: 3000,
-      30: 2500,
-      40: 2000,
-      50: 1500,
+      0: 4000,
+      10: 3500,
+      30: 3000,
+      50: 2500,
+      80: 2000,
+      100: 1500,
+      150: 1000,
     }
     let lastDuration = 4000
     function throwIceCube() {
@@ -119,6 +120,7 @@
       gameArea.appendChild(iceCube);
 
       const duration = durationByScore[score]|| lastDuration; 
+      lastDuration = duration;
       const startTime = performance.now();
       var g = 500 + (Math.random() * 500)
       var trusth = 0.03
