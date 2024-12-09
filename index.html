@@ -36,7 +36,7 @@
     #counter {
       transition: all 2s ease-out;
     }
-    .ice-cube {
+    .ice-cube, .meat-cube {
       position: absolute;
       font-size: 1.5em;
       animation: fall 2s ease-out forwards;
@@ -114,7 +114,7 @@
   </div>
 
   <div id="score" style="font-size: 2em; color: rebeccapurple;">0 Gabush</div>
-  <i>Pero le pongas hielo al vino!😤</i>
+  <span><i>Pero no le pongas hielo al vino!</i> 😤</span>
   <span>Aparta los hielos de la copa haciendo <b>click</b> sobre ellos</span>
   <span>El buen gusto y la puntería importan!</span>
   <span id="insidious" class="fade-out">El hielero se puso <b>incidioso</b></span>
@@ -272,6 +272,57 @@
       }
     }
 
+    function throwMeatCube() {
+      const meatCube = document.createElement('div');
+      meatCube.className = 'meat-cube';
+      meatCube.textContent = '🥩';
+      const startX = 0
+      const startY = targetY - window.innerHeight * ( 0.4 * Math.random());
+      meatCube.style.left = `${startX}px`;
+      meatCube.style.top = `${startY}px`;
+
+      gameArea.appendChild(meatCube);
+      const duration = 10000
+      const startTime = performance.now();
+      function animate(currentTime) {
+        const elapsed = currentTime - startTime;
+        const t = Math.min(elapsed / duration, 1);
+
+        const x = (1 - t) * startX + t * window.innerWidth
+        const y = startY + Math.sin(currentTime / 250) * 60
+        meatCube.style.left = `${x}px`;
+        meatCube.style.top = `${y}px`;
+
+        if (t < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          const hasBeenRemovedFromDOM = !meatCube.parentNode
+          if (!hasBeenRemovedFromDOM) {
+            gameArea.removeChild(meatCube);
+            onMeatCubeLand()
+          }
+        }
+      }
+      requestAnimationFrame(animate);
+
+      meatCube.addEventListener('click', onMeatCubeClick);
+      function onMeatCubeClick() {
+        meatCube.removeEventListener('click', onMeatCubeClick);
+        meatCube.style.transition = 'opacity 0.5s ease-out';
+        meatCube.style.opacity = '0';
+        if (!hasLost) {
+          score += 50;
+          scoreDisplay.textContent = `${score} Gabush`;
+          if (app.soundAllowed) {
+            playRandomBonus()
+          }
+        }
+        setTimeout(() => {
+          gameArea.removeChild(meatCube);
+        }, 500);
+      }
+    }
+
     const steps = 10
     let currentStep = 0;
 
@@ -352,7 +403,7 @@
       score = 0
       scoreDisplay.textContent = `${score} Gabush`;
       throwIceCube()
-      interval = setInterval(throwIceCube, 4000);
+      interval = setInterval(throwAnItem, 4000);
       initImage();
     }
 
@@ -371,9 +422,16 @@
       const delta = spawnDeltaByScore[score] || lastDelta;
       lastDelta = delta
       clearInterval(interval);
-      interval = setInterval(() => {
+      interval = setInterval(throwAnItem, delta);
+    }
+
+    function throwAnItem() {
+      const mustThrowMeatCube = Math.random() <= 0.1
+      if (mustThrowMeatCube) {
+        throwMeatCube()
+      } else {
         throwIceCube();
-      }, delta);
+      }
     }
   </script>
   <script>
@@ -404,6 +462,12 @@
     function playRandomLevelUp() {
       levelUpSound.currentTime = 0;
       levelUpSound.play();
+    }
+
+    const bonusSound = new Audio(`bonus.mp3`);
+    function playRandomBonus() {
+      bonusSound.currentTime = 0;
+      bonusSound.play();
     }
   </script>
 </body>
