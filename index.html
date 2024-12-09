@@ -55,6 +55,9 @@
       font-size: 4em;
       color: palevioletred;
     }
+    .hiddeable-text {
+      transition: all 2s ease-in-out;
+    }
     #insidious {
       transition: all 2s ease-in-out;
       color: red;
@@ -113,10 +116,10 @@
     </button>
   </div>
 
-  <div id="score" style="font-size: 2em; color: rebeccapurple;">0 Gabush</div>
-  <span><i>Pero no le pongas hielo al vino!</i> 😤</span>
-  <span>Aparta los hielos de la copa haciendo <b>click</b> sobre ellos</span>
-  <span>El buen gusto y la puntería importan!</span>
+  <div id="score" style="font-size: 2em; color: rebeccapurple;">&nbsp;</div>
+  <span class="hiddeable-text"><i>Pero no le pongas hielo al vino!</i> 😤</span>
+  <span class="hiddeable-text">Aparta los hielos de la copa haciendo <b>click</b> sobre ellos</span>
+  <span class="hiddeable-text">El buen gusto y la puntería importan!</span>
   <span id="insidious" class="fade-out">El hielero se puso <b>incidioso</b></span>
   <div id="game-area">
     <div id="target" class="target">🍷</div>
@@ -249,7 +252,7 @@
         iceCube.style.opacity = '0';
 
         score += 10;
-        scoreDisplay.textContent = `${score} Gabush`;
+        scoreDisplay.textContent = `${score} Gabushkas`;
         const incidiousScore = 80
         if (score >= incidiousScore && !incidious.dataset.flag) {
           incidious.dataset.flag = true
@@ -298,8 +301,7 @@
         } else {
           const hasBeenRemovedFromDOM = !meatCube.parentNode
           if (!hasBeenRemovedFromDOM) {
-            gameArea.removeChild(meatCube);
-            onMeatCubeLand()
+            gameArea.removeChild(meatCube)
           }
         }
       }
@@ -312,9 +314,13 @@
         meatCube.style.opacity = '0';
         if (!hasLost) {
           score += 50;
-          scoreDisplay.textContent = `${score} Gabush`;
+          scoreDisplay.textContent = `${score} Gabushkas`;
           if (app.soundAllowed) {
             playRandomBonus()
+          }
+          if (currentStep > 0) {
+            currentStep--
+            moveImage(currentStep, originalImageSrc)
           }
         }
         setTimeout(() => {
@@ -323,31 +329,31 @@
       }
     }
 
-    const steps = 10
+    const totalSteps = 10
     let currentStep = 0;
 
     const movingImage = document.getElementById('moving-image');
     const movingImageRect = movingImage.getBoundingClientRect();
     const gameAreaRect = gameArea.getBoundingClientRect();
     const totalDistance = gameAreaRect.width - movingImageRect.width;
-    const stepDistance = totalDistance / steps;
+    const stepDistance = totalDistance / totalSteps;
     var hasLost = false
     function onIceCubeLand() {
       if (hasLost) {
         return
       }
-      if (currentStep < steps) {
+      if (currentStep < totalSteps) {
         currentStep++
-        moveImage(currentStep)
+        moveImage(currentStep, movingFowardImageSrc)
         if (app.soundAllowed) {
           playRandomWaterDropSound()
         }
-        hasLost = currentStep == steps
+        hasLost = currentStep == totalSteps
       }
       if (hasLost) {
         clearInterval(interval)
         displayMessage("!Has perdido! 😱")
-        const historias = ["Gaby se hinchó y se fue a otra cata!","Gaby se pudrió de tomar con niños", "Gaby se picó y se fue al yacuzi"]
+        const historias = ["Gaby se hinchó y se fue la chota!","Gaby se pudrió de tomar con niños", "Se picó la gaby"]
         gameAreaTextPlaceholder.innerHTML = historias[Math.floor(Math.random() * historias.length)]
         gameAreaTextPlaceholder.classList.remove("fade-out");
         gameAreaTextPlaceholder.classList.add("fade-in");
@@ -358,17 +364,17 @@
       }
     }
 
-    const originalSrc = movingImage.src;
-    const movingSrc = "./gabushock.png"
+    const movingFowardImageSrc = "./gabushock.png"
+    const originalImageSrc = movingImage.src;
     movingImage.addEventListener("transitionend", () => {
-      movingImage.src = originalSrc;
+      movingImage.src = originalImageSrc;
       if (hasLost) {
         movingImage.style.transform = `translateX(${window.innerWidth}px)`;
       }
     });
-    function moveImage(step) {
+    function moveImage(step, imageSrc) {
       const newPosition = stepDistance * step;
-      movingImage.src = movingSrc;
+      movingImage.src = imageSrc;
       movingImage.style.transform = `translateX(${newPosition}px)`;
     }
 
@@ -399,9 +405,9 @@
 
     function startGame() {
       displayMessage("A jugar!")
+      document.querySelectorAll(".hiddeable-text").forEach((e) => e.classList.add("fade-out"))
       currentStep = 0
       score = 0
-      scoreDisplay.textContent = `${score} Gabush`;
       throwIceCube()
       interval = setInterval(throwAnItem, 4000);
       initImage();
