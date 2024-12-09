@@ -19,13 +19,14 @@
 
     #game-area {
       width: 80vw; 
-      height: 50vh; 
+      height: 30vh; 
       background-color: lightblue;
       display: flex;
       justify-content: center;
       align-items: center;
       border: 2px solid #0077cc;
       border-radius: 10px;
+      position: relative;
     }
     #target {
       position: absolute;
@@ -101,7 +102,7 @@
     const target = document.getElementById('target');
     
     const targetX = gameArea.clientWidth * (0.3 + Math.random() * 0.3); 
-    const targetY = gameArea.clientHeight
+    const targetY = gameArea.clientHeight - iceCubeRect.height - 10
     target.style.left = `${targetX}px`;
     target.style.top = `${targetY}px`;
 
