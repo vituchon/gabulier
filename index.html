@@ -15,6 +15,7 @@
       justify-content: center;
       align-items: center;
       flex-direction: column;
+      overflow: hidden;
     }
 
     #game-area {
@@ -32,6 +33,9 @@
       position: absolute;
       font-size: 2em;
     }
+    #counter {
+      transition: all 2s ease-out;
+    }
     .ice-cube {
       position: absolute;
       font-size: 1.5em;
@@ -47,61 +51,137 @@
       object-fit: contain;
     }
     #counter {
-      margin: auto;
+      position: absolute;
       font-size: 4em;
-      color: red;
+      color: palevioletred;
     }
     #insidious {
       transition: all 2s ease-in-out;
       color: red;
     }
-    #insidious.reveal {
+    .fade-in {
       opacity: 1;
     }
-    #insidious.hide {
+    .fade-out {
       opacity: 0;
     }
 
+    #sound-button-container, #about-button-container  {
+      position: fixed;
+      z-index: 1000;
+    }
+
+    #sound-button-container {
+      top: 10px;
+      right: 10px;
+    }
+
+    #sound-button, #about-button {
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      color: white;
+      font-size: 12px;
+      padding: 8px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    #sound-button:hover, #about-button:hover {
+      transform: scale(1.05);
+      box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    #sound-button:active {
+      transform: scale(0.95);
+      box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    #start-countdown {
+      transition: all 2s ease-in-out;
+      position: absolute;
+      font-size: 2em;
+      color: palevioletred;
+    }
   </style>
 </head>
 <body>
+  <div id="sound-button-container">
+    <button id="sound-button">
+      🔊 Sonido
+    </button>
+  </div>
+
   <div id="score" style="font-size: 2em; color: rebeccapurple;">0 Gabush</div>
-  <span>No le pongas hielo al vino!!😤</span>
-  <span>Aparta los hielos de la copa haciendo click sobre ellos</span>
+  <i>Pero le pongas hielo al vino!😤</i>
+  <span>Aparta los hielos de la copa haciendo <b>click</b> sobre ellos</span>
   <span>El buen gusto y la puntería importan!</span>
-  <span id="insidious" class="hide">El hielero se puso <b>incidioso</b></span>
-  <div id="game-area" class="centered-div">
+  <span id="insidious" class="fade-out">El hielero se puso <b>incidioso</b></span>
+  <div id="game-area">
     <div id="target" class="target">🍷</div>
-    <div id="counter"></div>
+    <button id="start-countdown">Comenzar</button>
+    <div id="counter" class="fade-out"></div>
   </div>
   <img id="moving-image" height="80px" src="./gabuneutral.png" />
 
   <script>
-      const iceCube = document.createElement('div');
-      iceCube.className = 'ice-cube';
-      iceCube.textContent = '🧊';
-      document.body.appendChild(iceCube);
-      const iceCubeRect = iceCube.getBoundingClientRect();
-      document.body.removeChild(iceCube);
-
-      function displayMessage(message) {
-        Toastify({
-          text: message,
-          duration: 3000,
-          newWindow: true,
-          gravity: "top",
-          position: 'left',
-          style: {
-            "font-size": "1.5em",
-            "border-radius": "0.5em",
-          }
-        }).showToast();
+    // initalization code
+    const app = {
+      soundAllowed: true
+    }
+    document.getElementById('sound-button').addEventListener('click', () => {
+      app.soundAllowed = !app.soundAllowed;
+      updateSoundButtonContent()
+    });
+    updateSoundButtonContent()
+    function updateSoundButtonContent() {
+      const soundButton = document.getElementById('sound-button');
+      if (app.soundAllowed) {
+        soundButton.textContent = '🔊 Sonido';
+      } else {
+        soundButton.textContent = '🔇 Mute';
       }
+    }
 
+    const startCountdownButton = document.getElementById('start-countdown')
+    startCountdownButton.addEventListener('click', onStartGameCountdownButtonClick);
+    function onStartGameCountdownButtonClick() {
+      startCountdownButton.removeEventListener('click', onStartGameCountdownButtonClick);
+      startCountdownButton.classList.add("fade-out");
+      setTimeout(() => {
+        startCountdownButton.remove()
+      }, 2000);
+      startGameCountdown(3)
+    }
+
+    const iceCube = document.createElement('div');
+    iceCube.className = 'ice-cube';
+    iceCube.textContent = '🧊';
+    document.body.appendChild(iceCube);
+    const iceCubeRect = iceCube.getBoundingClientRect();
+    document.body.removeChild(iceCube);
+
+    function displayMessage(message) {
+      Toastify({
+        text: message,
+        duration: 3000,
+        newWindow: true,
+        gravity: "top",
+        position: 'left',
+          style: {
+          "font-size": "1.5em",
+          "border-radius": "1em",
+          "background": "yellow",
+          "color": "palevioletred",
+        },
+      }).showToast();
+    }
   </script>
   <script>
     const gameArea = document.getElementById('game-area');
     const target = document.getElementById('target');
+    const gameAreaTextPlaceholder = document.getElementById('counter')
 
     const targetX = gameArea.clientWidth * (0.3 + Math.random() * 0.3);
     const targetY = gameArea.clientHeight - iceCubeRect.height - 10
@@ -170,14 +250,19 @@
 
         score += 10;
         scoreDisplay.textContent = `${score} Gabush`;
-        if (score >= 10 && !incidious.dataset.flag) {
+        const incidiousScore = 80
+        if (score >= incidiousScore && !incidious.dataset.flag) {
           incidious.dataset.flag = true
-          incidious.classList.remove("hide");
-          incidious.classList.add("reveal");
+          incidious.classList.remove("fade-out");
+          incidious.classList.add("fade-in");
           setTimeout(() => {
-            incidious.classList.remove("reveal");
-            incidious.classList.add("hide");
+            incidious.classList.remove("fade-in");
+            incidious.classList.add("fade-out");
           }, 2000);
+
+          if (app.soundAllowed) {
+            playRandomLevelUp()
+          }
         }
 
         setTimeout(() => {
@@ -203,32 +288,32 @@
       if (currentStep < steps) {
         currentStep++
         moveImage(currentStep)
+        if (app.soundAllowed) {
+          playRandomWaterDropSound()
+        }
         hasLost = currentStep == steps
       }
       if (hasLost) {
         clearInterval(interval)
         displayMessage("!Has perdido! 😱")
+        const historias = ["Gaby se hinchó y se fue a otra cata!","Gaby se pudrió de tomar con niños", "Gaby se picó y se fue al yacuzi"]
+        gameAreaTextPlaceholder.innerHTML = historias[Math.floor(Math.random() * historias.length)]
+        gameAreaTextPlaceholder.classList.remove("fade-out");
+        gameAreaTextPlaceholder.classList.add("fade-in");
+        if (app.soundAllowed) {
+          playRandomEndingSound()
+        }
+        target.classList.add("fade-out")
       }
     }
-
-    let secondsToStart = 1
-    document.getElementById('counter').innerText = secondsToStart
-    let gameStartInterval = setInterval(() => {
-      secondsToStart--
-      if (secondsToStart == 0) {
-        clearInterval(gameStartInterval)
-        startGame()
-        setTimeout(() => {
-          document.getElementById('counter').innerText = ""
-        }, 500)
-      }
-      document.getElementById('counter').innerText = secondsToStart
-    }, 1000)
 
     const originalSrc = movingImage.src;
     const movingSrc = "./gabushock.png"
     movingImage.addEventListener("transitionend", () => {
       movingImage.src = originalSrc;
+      if (hasLost) {
+        movingImage.style.transform = `translateX(${window.innerWidth}px)`;
+      }
     });
     function moveImage(step) {
       const newPosition = stepDistance * step;
@@ -241,6 +326,25 @@
       movingImage.style.top =`${gameAreaRect.y + gameAreaRect.height}px`;
     }
 
+    function startGameCountdown(secondsToStart) {
+      gameAreaTextPlaceholder.innerText = secondsToStart
+      gameAreaTextPlaceholder.classList.remove("fade-out");
+      gameAreaTextPlaceholder.classList.add("fade-in");
+      let gameStartInterval = setInterval(() => {
+        secondsToStart--
+        if (secondsToStart == 0) {
+          gameAreaTextPlaceholder.classList.remove("fade-in");
+          gameAreaTextPlaceholder.classList.add("fade-out");
+          clearInterval(gameStartInterval)
+          startGame()
+          setTimeout(() => {
+            gameAreaTextPlaceholder.innerText = ""
+          }, 500)
+        }
+        gameAreaTextPlaceholder.innerText = secondsToStart
+      }, 1000)
+      initImage();
+    }
 
     function startGame() {
       displayMessage("A jugar!")
@@ -270,6 +374,36 @@
       interval = setInterval(() => {
         throwIceCube();
       }, delta);
+    }
+  </script>
+  <script>
+    const waterSoundsCount = 3
+    var Sounds = {}
+    Sounds.waterDrops = []
+    Sounds.endings = []
+    for (let i = 0; i < waterSoundsCount; i++) {
+      Sounds.waterDrops[i] = new Audio(`water_drop_${i}.mp3`);
+    }
+    function playRandomWaterDropSound() {
+      const randomIndex = Math.floor(Math.random() * waterSoundsCount);
+      Sounds.waterDrops[randomIndex].currentTime = 0;
+      Sounds.waterDrops[randomIndex].play();
+    }
+
+    const endingSoundsCount = 2
+    for (let i = 0; i < endingSoundsCount; i++) {
+      Sounds.endings[i] = new Audio(`ending_${i}.mp3`);
+    }
+    function playRandomEndingSound() {
+      const randomIndex = Math.floor(Math.random() * endingSoundsCount);
+      Sounds.endings[randomIndex].currentTime = 0;
+      Sounds.endings[randomIndex].play();
+    }
+
+    const levelUpSound = new Audio(`level_up.mp3`);
+    function playRandomLevelUp() {
+      levelUpSound.currentTime = 0;
+      levelUpSound.play();
     }
   </script>
 </body>
