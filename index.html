@@ -49,6 +49,14 @@
       font-size: 2em;
       color: red;
     }
+    #insidious {
+      opacity: 0.1;
+      transition: all 1s ease-in-out; 
+      color: red;
+    }
+    #insidious.reveal {
+      opacity: 1;
+    }
 
   </style>
 </head>
@@ -57,6 +65,7 @@
   <span>No le pongas hielo al vino!! 😤</span>
   <span>Sacalo con un click de la mesa!... si llega a la copa gaby no toma 😱</span>
   <span>El buen gusto y la puntería importan!</span>
+  <span id="insidious">El hielero se puso <b>incidioso</b></span>
   <div id="game-area" class="centered-div">
     <div id="target" class="target">🍷</div>
     <div id="counter">2</div>
@@ -149,6 +158,7 @@
       requestAnimationFrame(animate); 
 
       iceCube.addEventListener('click', onIceCubeClick);
+      const incidious = document.getElementById("insidious")
       function onIceCubeClick() {
         iceCube.removeEventListener('click', onIceCubeClick);
         iceCube.style.transition = 'opacity 0.5s ease-out';
@@ -156,6 +166,10 @@
 
         score += 10;
         scoreDisplay.textContent = `Puntos: ${score}`;
+        if (score >= 80 && !incidious.dataset.flag) {
+          incidious.dataset.flag = true
+          incidious.classList.add("reveal");
+        }
 
         setTimeout(() => {
           gameArea.removeChild(iceCube);
