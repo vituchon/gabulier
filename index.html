@@ -38,19 +38,20 @@
     }
     #moving-image {
       position: absolute;
-      left: -100px; /* Fuera del área visible */
-      transform: translateX(0); /* Sin movimiento inicial */
-      transition: transform 0.5s ease-in-out; /* Suavizado entre pasos */
-      width: 80px; /* Ajusta según tu imagen */
-      height: auto;
+      left: -100px; 
+      transform: translateX(0); 
+      transition: transform 0.5s ease-in-out; 
+      height: 100px; 
+      width: auto;
+      object-fit: contain;
     }
     #counter {
       margin: auto;
-      font-size: 2em;
+      font-size: 4em;
       color: red;
     }
     #insidious {
-      opacity: 0.1;
+      opacity: 0;
       transition: all 1s ease-in-out; 
       color: red;
     }
@@ -61,16 +62,16 @@
   </style>
 </head>
 <body>
-  <div id="score" style="font-size: 2em; color: rebeccapurple;">Puntos: 0</div>
-  <span>No le pongas hielo al vino!! 😤</span>
-  <span>Sacalo con un click de la mesa!... si llega a la copa gaby no toma 😱</span>
+  <div id="score" style="font-size: 2em; color: rebeccapurple;">0 Gabypoints</div>
+  <span>No le pongas hielo al vino!!😤</span>
+  <span>Aparta los hielos de la copa haciendo click sobre ellos</span>
   <span>El buen gusto y la puntería importan!</span>
   <span id="insidious">El hielero se puso <b>incidioso</b></span>
   <div id="game-area" class="centered-div">
     <div id="target" class="target">🍷</div>
-    <div id="counter">2</div>
+    <div id="counter"></div>
   </div>
-  <img id="moving-image" src="./gabuneutral.png" />
+  <img id="moving-image" height="80px" src="./gabuneutral.png" />
 
   <script>
       const iceCube = document.createElement('div');
@@ -165,7 +166,7 @@
         iceCube.style.opacity = '0';
 
         score += 10;
-        scoreDisplay.textContent = `Puntos: ${score}`;
+        scoreDisplay.textContent = `${score} Gabypoints`;
         if (score >= 80 && !incidious.dataset.flag) {
           incidious.dataset.flag = true
           incidious.classList.add("reveal");
@@ -178,7 +179,7 @@
       }
     }
 
-    const steps = 5
+    const steps = 10
     let currentStep = 0; 
 
     const movingImage = document.getElementById('moving-image');
@@ -198,7 +199,7 @@
       } 
       if (hasLost) {
         clearInterval(interval)
-        displayMessage("has perdido!")
+        displayMessage("!Has perdido! 😱")
       }
     }
 
@@ -237,7 +238,7 @@
       displayMessage("A jugar!")
       currentStep = 0
       score = 0
-      scoreDisplay.textContent = `Puntos: ${score}`;
+      scoreDisplay.textContent = `${score} Gabypoints`;
       throwIceCube()
       interval = setInterval(throwIceCube, 4000);
       initImage();
