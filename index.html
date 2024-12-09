@@ -18,8 +18,8 @@
     }
 
     #game-area {
-      width: 80vw; 
-      height: 30vh; 
+      width: 80vw;
+      height: 30vh;
       background-color: lightblue;
       display: flex;
       justify-content: center;
@@ -39,10 +39,10 @@
     }
     #moving-image {
       position: absolute;
-      left: -100px; 
-      transform: translateX(0); 
-      transition: transform 0.5s ease-in-out; 
-      height: 100px; 
+      left: -100px;
+      transform: translateX(0);
+      transition: transform 0.5s ease-in-out;
+      height: 100px;
       width: auto;
       object-fit: contain;
     }
@@ -52,22 +52,24 @@
       color: red;
     }
     #insidious {
-      opacity: 0;
-      transition: all 1s ease-in-out; 
+      transition: all 2s ease-in-out;
       color: red;
     }
     #insidious.reveal {
       opacity: 1;
     }
+    #insidious.hide {
+      opacity: 0;
+    }
 
   </style>
 </head>
 <body>
-  <div id="score" style="font-size: 2em; color: rebeccapurple;">0 Gabypoints</div>
+  <div id="score" style="font-size: 2em; color: rebeccapurple;">0 Gabush</div>
   <span>No le pongas hielo al vino!!😤</span>
   <span>Aparta los hielos de la copa haciendo click sobre ellos</span>
   <span>El buen gusto y la puntería importan!</span>
-  <span id="insidious">El hielero se puso <b>incidioso</b></span>
+  <span id="insidious" class="hide">El hielero se puso <b>incidioso</b></span>
   <div id="game-area" class="centered-div">
     <div id="target" class="target">🍷</div>
     <div id="counter"></div>
@@ -100,8 +102,8 @@
   <script>
     const gameArea = document.getElementById('game-area');
     const target = document.getElementById('target');
-    
-    const targetX = gameArea.clientWidth * (0.3 + Math.random() * 0.3); 
+
+    const targetX = gameArea.clientWidth * (0.3 + Math.random() * 0.3);
     const targetY = gameArea.clientHeight - iceCubeRect.height - 10
     target.style.left = `${targetX}px`;
     target.style.top = `${targetY}px`;
@@ -122,42 +124,42 @@
       const iceCube = document.createElement('div');
       iceCube.className = 'ice-cube';
       iceCube.textContent = '🧊';
-      
-      const startX = Math.random() > 0.5 ? - parseFloat(iceCubeRect.width) : window.innerWidth; 
+
+      const startX = Math.random() > 0.5 ? - parseFloat(iceCubeRect.width) : window.innerWidth;
       const startY = targetY - window.innerHeight * ( 0.4 * Math.random());
       iceCube.style.left = `${startX}px`;
       iceCube.style.top = `${startY}px`;
 
       gameArea.appendChild(iceCube);
 
-      const duration = durationByScore[score]|| lastDuration; 
+      const duration = durationByScore[score]|| lastDuration;
       lastDuration = duration;
       const startTime = performance.now();
       var g = 500 + (Math.random() * 500)
       var trusth = 0.03
 
       function animate(currentTime) {
-        const elapsed = currentTime - startTime; 
-        const t = Math.min(elapsed / duration, 1); 
+        const elapsed = currentTime - startTime;
+        const t = Math.min(elapsed / duration, 1);
 
-        const x = (1 - t) * startX + t * targetX; 
-        const y = startY + t * (t - 1) * g + t * (targetY - startY); 
+        const x = (1 - t) * startX + t * targetX;
+        const y = startY + t * (t - 1) * g + t * (targetY - startY);
         iceCube.style.left = `${x}px`;
         iceCube.style.top = `${y}px`;
 
         if (t < 1) {
-          requestAnimationFrame(animate); 
+          requestAnimationFrame(animate);
         } else {
           const hasBeenRemovedFromDOM = !iceCube.parentNode
           if (!hasBeenRemovedFromDOM) {
-            gameArea.removeChild(iceCube); 
+            gameArea.removeChild(iceCube);
             onIceCubeLand()
           }
         }
         g += trusth
         trusth *= 1.023
       }
-      requestAnimationFrame(animate); 
+      requestAnimationFrame(animate);
 
       iceCube.addEventListener('click', onIceCubeClick);
       const incidious = document.getElementById("insidious")
@@ -167,10 +169,15 @@
         iceCube.style.opacity = '0';
 
         score += 10;
-        scoreDisplay.textContent = `${score} Gabypoints`;
-        if (score >= 80 && !incidious.dataset.flag) {
+        scoreDisplay.textContent = `${score} Gabush`;
+        if (score >= 10 && !incidious.dataset.flag) {
           incidious.dataset.flag = true
+          incidious.classList.remove("hide");
           incidious.classList.add("reveal");
+          setTimeout(() => {
+            incidious.classList.remove("reveal");
+            incidious.classList.add("hide");
+          }, 2000);
         }
 
         setTimeout(() => {
@@ -181,13 +188,13 @@
     }
 
     const steps = 10
-    let currentStep = 0; 
+    let currentStep = 0;
 
     const movingImage = document.getElementById('moving-image');
     const movingImageRect = movingImage.getBoundingClientRect();
     const gameAreaRect = gameArea.getBoundingClientRect();
-    const totalDistance = gameAreaRect.width - movingImageRect.width; 
-    const stepDistance = totalDistance / steps; 
+    const totalDistance = gameAreaRect.width - movingImageRect.width;
+    const stepDistance = totalDistance / steps;
     var hasLost = false
     function onIceCubeLand() {
       if (hasLost) {
@@ -197,14 +204,14 @@
         currentStep++
         moveImage(currentStep)
         hasLost = currentStep == steps
-      } 
+      }
       if (hasLost) {
         clearInterval(interval)
         displayMessage("!Has perdido! 😱")
       }
     }
 
-    let secondsToStart = 5
+    let secondsToStart = 1
     document.getElementById('counter').innerText = secondsToStart
     let gameStartInterval = setInterval(() => {
       secondsToStart--
@@ -218,7 +225,7 @@
       document.getElementById('counter').innerText = secondsToStart
     }, 1000)
 
-    const originalSrc = movingImage.src; 
+    const originalSrc = movingImage.src;
     const movingSrc = "./gabushock.png"
     movingImage.addEventListener("transitionend", () => {
       movingImage.src = originalSrc;
@@ -226,12 +233,12 @@
     function moveImage(step) {
       const newPosition = stepDistance * step;
       movingImage.src = movingSrc;
-      movingImage.style.transform = `translateX(${newPosition}px)`; 
+      movingImage.style.transform = `translateX(${newPosition}px)`;
     }
 
     function initImage() {
-      movingImage.style.left =`${gameAreaRect.x}px`; 
-      movingImage.style.top =`${gameAreaRect.y + gameAreaRect.height}px`; 
+      movingImage.style.left =`${gameAreaRect.x}px`;
+      movingImage.style.top =`${gameAreaRect.y + gameAreaRect.height}px`;
     }
 
 
@@ -239,7 +246,7 @@
       displayMessage("A jugar!")
       currentStep = 0
       score = 0
-      scoreDisplay.textContent = `${score} Gabypoints`;
+      scoreDisplay.textContent = `${score} Gabush`;
       throwIceCube()
       interval = setInterval(throwIceCube, 4000);
       initImage();
@@ -259,11 +266,11 @@
       }
       const delta = spawnDeltaByScore[score] || lastDelta;
       lastDelta = delta
-      clearInterval(interval);  
+      clearInterval(interval);
       interval = setInterval(() => {
         throwIceCube();
       }, delta);
-    }      
+    }
   </script>
 </body>
 </html>
