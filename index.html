@@ -110,7 +110,7 @@
 
       gameArea.appendChild(iceCube);
 
-      const duration = 3000; 
+      const duration = 5000; 
       const startTime = performance.now();
       var g = 500 + (Math.random() * 500)
       var trusth = 0.03
@@ -154,7 +154,7 @@
       }
     }
 
-    const steps = 3 
+    const steps = 5
     let currentStep = 0; 
 
     const movingImage = document.getElementById('moving-image');
@@ -178,7 +178,7 @@
       }
     }
 
-    let secondsToStart = 1
+    let secondsToStart = 5
     document.getElementById('counter').innerText = secondsToStart
     let gameStartInterval = setInterval(() => {
       secondsToStart--
@@ -224,8 +224,13 @@
       interval = setInterval(throwIceCube, 4000);
       initImage();
     }
+    let lastDelta = 4000
     function updateInterval() {
-      const delta = spawnDeltaByScore[score] || 4000;
+      if (hasLost) {
+        return
+      }
+      const delta = spawnDeltaByScore[score] || lastDelta;
+      lastDelta = delta
       clearInterval(interval);  
       interval = setInterval(() => {
         throwIceCube();
