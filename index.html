@@ -69,7 +69,7 @@
       opacity: 0;
     }
 
-    #sound-button-container, #about-button-container  {
+    #sound-button-container, #about-button-container, #score-container, #debug-container  {
       position: fixed;
       z-index: 1000;
     }
@@ -77,6 +77,18 @@
     #sound-button-container {
       top: 10px;
       right: 10px;
+    }
+
+    #score-container {
+      top:10px;
+      font-size: 1.2em;
+      color: palevioletred;
+    }
+
+    #debug-container {
+      top:10px;
+      left: 10px;
+      font-size: 1.2em;
     }
 
     #sound-button, #about-button {
@@ -115,8 +127,21 @@
       🔊 Sonido
     </button>
   </div>
+  <div id="score-container">
+    <span id="score">
+    </span>
+  </div>
+  <div id="debug-container">
+    <span id="debug">
+    </span>
+    <button id="kill-all">KILL ALL</button>
+    <script>
+      document.getElementById("kill-all").addEventListener("click", () => {
+        document.querySelectorAll(".ice-cube").forEach((e) => e.click())
+      })
+    </script>
+  </div>
 
-  <div id="score" style="font-size: 2em; color: rebeccapurple;">&nbsp;</div>
   <span class="hiddeable-text"><i>Pero no le pongas hielo al vino!</i> 😤</span>
   <span class="hiddeable-text">Aparta los hielos de la copa haciendo <b>click</b> sobre ellos</span>
   <span class="hiddeable-text">El buen gusto y la puntería importan!</span>
@@ -130,8 +155,60 @@
 
   <script>
     // initalization code
+
+    const itemSpawnDelayByIcesCaptured = {
+      0: 3000,
+      1: 2500,
+      5: 2000,
+      10: 1000,
+      20: 500,
+    }
+    const iceThrownDurationByIcesCaptured = {
+      0: 4000,
+      1: 3500,
+      5: 3000,
+      10: 2500,
+      20: 2000,
+      30: 1500,
+      40: 1000,
+    }
     const app = {
-      soundAllowed: true
+      soundAllowed: true,
+      game: {
+        currentIcesOnWine: 0, // would be the player current "life"
+        maxIcesOnWine: 10,    // would be the player max "life"
+        icesCaptured: 0,
+        meatsCaptured: 0,
+        hasEnd: false,
+        init: function() {
+          this.currentIcesOnWine = 0,
+          this.icesCaptured = 0,
+          this.meatsCaptured = 0,
+          this.hasEnd = false
+        },
+        determineItemSpawnDelay: function() {
+          var last = 0
+          for (const icesCaptured in itemSpawnDelayByIcesCaptured) {
+            const n = parseInt(icesCaptured)
+            if (n >= this.icesCaptured) {
+              return itemSpawnDelayByIcesCaptured[last]
+            }
+            last = n
+          }
+          return itemSpawnDelayByIcesCaptured[last]
+        },
+        determineIceThrownDuration: function() {
+          var last = 0
+          for (const icesCaptured in iceThrownDurationByIcesCaptured) {
+            const n = parseInt(icesCaptured)
+            if (n >= this.icesCaptured) {
+              return iceThrownDurationByIcesCaptured[last]
+            }
+            last = n
+          }
+          return iceThrownDurationByIcesCaptured[last]
+        }
+      },
     }
     document.getElementById('sound-button').addEventListener('click', () => {
       app.soundAllowed = !app.soundAllowed;
@@ -191,18 +268,8 @@
     target.style.left = `${targetX}px`;
     target.style.top = `${targetY}px`;
 
-    let score = 0;
     const scoreDisplay = document.getElementById('score');
-    const durationByScore = {
-      0: 4000,
-      10: 3500,
-      30: 3000,
-      50: 2500,
-      80: 2000,
-      100: 1500,
-      150: 1000,
-    }
-    let lastDuration = 4000
+
     function throwIceCube() {
       const iceCube = document.createElement('div');
       iceCube.className = 'ice-cube';
@@ -215,12 +282,12 @@
 
       gameArea.appendChild(iceCube);
 
-      const duration = durationByScore[score]|| lastDuration;
-      lastDuration = duration;
+      const duration = app.game.determineIceThrownDuration()
+      document.getElementById("debug").innerHTML = `<span>Thrown lapse: ${app.game.determineIceThrownDuration()}</span><br/><span>Spawn delay:${app.game.determineItemSpawnDelay()}</span>`;
+
       const startTime = performance.now();
       var g = 500 + (Math.random() * 500)
       var trusth = 0.03
-
       function animate(currentTime) {
         const elapsed = currentTime - startTime;
         const t = Math.min(elapsed / duration, 1);
@@ -251,10 +318,10 @@
         iceCube.style.transition = 'opacity 0.5s ease-out';
         iceCube.style.opacity = '0';
 
-        score += 10;
-        scoreDisplay.textContent = `${score} Gabushkas`;
-        const incidiousScore = 80
-        if (score >= incidiousScore && !incidious.dataset.flag) {
+        app.game.icesCaptured++;
+        scoreDisplay.innerHTML = `<span>${app.game.icesCaptured} x 🧊</span><br/><span>${app.game.meatsCaptured} x 🥩</span>`;
+        const incidiousScore = 30
+        if (app.game.icesCaptured >= incidiousScore && !incidious.dataset.flag) {
           incidious.dataset.flag = true
           incidious.classList.remove("fade-out");
           incidious.classList.add("fade-in");
@@ -312,15 +379,15 @@
         meatCube.removeEventListener('click', onMeatCubeClick);
         meatCube.style.transition = 'opacity 0.5s ease-out';
         meatCube.style.opacity = '0';
-        if (!hasLost) {
-          score += 50;
-          scoreDisplay.textContent = `${score} Gabushkas`;
+        if (!app.game.hasEnd) {
+          app.game.meatsCaptured++;
+          scoreDisplay.innerHTML = `<span>${app.game.icesCaptured} x 🧊</span><br/><span>${app.game.meatsCaptured} x 🥩</span>`;
           if (app.soundAllowed) {
             playRandomBonus()
           }
-          if (currentStep > 0) {
-            currentStep--
-            moveImage(currentStep, originalImageSrc)
+          if (app.game.currentIcesOnWine > 0) {
+            app.game.currentIcesOnWine--
+            moveImage(app.game.currentIcesOnWine, originalImageSrc)
           }
         }
         setTimeout(() => {
@@ -329,28 +396,24 @@
       }
     }
 
-    const totalSteps = 10
-    let currentStep = 0;
-
     const movingImage = document.getElementById('moving-image');
     const movingImageRect = movingImage.getBoundingClientRect();
     const gameAreaRect = gameArea.getBoundingClientRect();
     const totalDistance = gameAreaRect.width - movingImageRect.width;
-    const stepDistance = totalDistance / totalSteps;
-    var hasLost = false
+    const stepDistance = totalDistance / app.game.maxIcesOnWine;
     function onIceCubeLand() {
-      if (hasLost) {
+      if (app.game.hasEnd) {
         return
       }
-      if (currentStep < totalSteps) {
-        currentStep++
-        moveImage(currentStep, movingFowardImageSrc)
+      if (app.game.currentIcesOnWine < app.game.maxIcesOnWine) {
+        app.game.currentIcesOnWine++
+        moveImage(app.game.currentIcesOnWine, movingFowardImageSrc)
         if (app.soundAllowed) {
           playRandomWaterDropSound()
         }
-        hasLost = currentStep == totalSteps
+        app.game.hasEnd = app.game.currentIcesOnWine == app.game.maxIcesOnWine
       }
-      if (hasLost) {
+      if (app.game.hasEnd) {
         clearInterval(interval)
         displayMessage("!Fin! 😱")
         const historias = ["Se picó y se fue la chota!","Se pudrió de tomar con niños", "Se picó y se volando en su yacuzi"]
@@ -368,7 +431,7 @@
     const originalImageSrc = movingImage.src;
     movingImage.addEventListener("transitionend", () => {
       movingImage.src = originalImageSrc;
-      if (hasLost) {
+      if (app.game.hasEnd) {
         movingImage.style.transform = `translateX(${window.innerWidth}px)`;
       }
     });
@@ -404,31 +467,22 @@
     }
 
     function startGame() {
+      app.game.init()
       displayMessage("A jugar!")
-      document.querySelectorAll(".hiddeable-text").forEach((e) => e.classList.add("fade-out"))
-      currentStep = 0
-      score = 0
-      throwIceCube()
-      interval = setInterval(throwAnItem, 4000);
       initImage();
+      document.querySelectorAll(".hiddeable-text").forEach((e) => e.classList.add("fade-out"))
+      throwIceCube()
+      interval = setInterval(throwAnItem, app.game.determineItemSpawnDelay());
     }
 
-    const spawnDeltaByScore = {
-      0: 4000,
-      10: 3000,
-      20: 2000,
-      30: 1000,
-      40: 500,
-    }
-    let lastDelta = 4000
     function updateInterval() {
-      if (hasLost) {
+      if (app.game.hasEnd) {
         return
       }
-      const delta = spawnDeltaByScore[score] || lastDelta;
-      lastDelta = delta
+      const delay = app.game.determineItemSpawnDelay()
+      document.getElementById("debug").innerHTML = `<span>Thrown lapse: ${app.game.determineIceThrownDuration()}</span><br/><span>Spawn delay:${app.game.determineItemSpawnDelay()}</span>`;
       clearInterval(interval);
-      interval = setInterval(throwAnItem, delta);
+      interval = setInterval(throwAnItem, delay);
     }
 
     function throwAnItem() {
