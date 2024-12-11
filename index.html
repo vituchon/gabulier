@@ -29,18 +29,18 @@
       border-radius: 10px;
       position: relative;
     }
+
     #target {
       position: absolute;
       font-size: 2em;
     }
-    #counter {
-      transition: all 2s ease-out;
-    }
+
     .ice-cube, .meat-cube {
       position: absolute;
-      font-size: 1.5em;
+      font-size: 2em;
       animation: fall 2s ease-out forwards;
     }
+
     #moving-image {
       position: absolute;
       left: -100px;
@@ -50,21 +50,27 @@
       width: auto;
       object-fit: contain;
     }
-    #counter {
+
+    #game-text-container {
       position: absolute;
       font-size: 2em;
       color: palevioletred;
+      transition: all 2s ease-out;
     }
+
     .hiddeable-text {
       transition: all 2s ease-in-out;
     }
+
     #insidious {
       transition: all 2s ease-in-out;
       color: red;
     }
+
     .fade-in {
       opacity: 1;
     }
+
     .fade-out {
       opacity: 0;
     }
@@ -88,7 +94,7 @@
     #debug-container {
       top:10px;
       left: 10px;
-      font-size: 1.2em;
+      font-size: 0.5em;
     }
 
     #sound-button, #about-button {
@@ -113,12 +119,37 @@
       box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.3);
     }
 
-    #start-countdown {
-      transition: all 2s ease-in-out;
-      position: absolute;
-      font-size: 2em;
-      color: palevioletred;
+    #game-description {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      align-self: flex-start;
     }
+
+    #start-countdown {
+      font-size: 1.8em;
+      color: white;
+      background: linear-gradient(135deg, #ff7eb3, #ff758c);
+      padding: 0.6em 1.2em;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s, box-shadow 0.3s, background 0.5s, opacity 0.5s;
+    }
+
+    #start-countdown:hover {
+      transform: scale(1.1);
+      background: linear-gradient(135deg, #ff758c, #ff7eb3);
+      box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    #start-countdown:active {
+      transform: scale(0.95);
+      box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.2);
+      background: linear-gradient(135deg, #ff607e, #ff758c);
+    }
+
   </style>
 </head>
 <body>
@@ -143,14 +174,17 @@
     </script>
   </div>
 
-  <span class="hiddeable-text"><i>Pero no le pongas hielo al vino!</i> 😤</span>
-  <span class="hiddeable-text">Aparta los hielos de la copa haciendo <b>click</b> sobre ellos</span>
-  <span class="hiddeable-text">El buen gusto y la puntería importan!</span>
   <span id="insidious" class="fade-out">La máquina de hielo se puso <b>incidiosa</b></span>
   <div id="game-area">
+    <div id="game-description">
+      <span class="hiddeable-text"><i>Pero no le pongas hielo al vino!</i> 😤</span>
+      <span class="hiddeable-text">Aparta los hielos (🧊) de la copa (🍷) tocandolos (👆🏿)</span>
+      <span class="hiddeable-text">Tenés que vencer a la máquina de hielos</span>
+      <span class="hiddeable-text">El buen gusto y la puntería importan</span>
+      <button id="start-countdown">Comenzar</button>
+    </div>
     <div id="target" class="target">🍷</div>
-    <button id="start-countdown">Comenzar</button>
-    <div id="counter" class="fade-out"></div>
+    <div id="game-text-container" class="fade-out"></div>
   </div>
   <img id="moving-image" height="80px" src="./gabuneutral.png" />
 
@@ -214,7 +248,9 @@
             if (hasWin) {
               this.status = "finished_win"
             }
+            return true
           }
+          return false
         },
         determineItemSpawnDelay: function() {
           var last = 0
@@ -261,7 +297,7 @@
       startCountdownButton.classList.add("fade-out");
       setTimeout(() => {
         startCountdownButton.remove()
-      }, 2000);
+      }, 500);
       startGameCountdown(3)
     }
 
@@ -282,8 +318,8 @@
           style: {
           "font-size": "1.5em",
           "border-radius": "1em",
-          "background": "yellow",
-          "color": "palevioletred",
+          /*"background": "yellow",
+          "color": "palevioletred",*/
         },
       }).showToast();
     }
@@ -291,7 +327,7 @@
   <script>
     const gameArea = document.getElementById('game-area');
     const target = document.getElementById('target');
-    const gameAreaTextPlaceholder = document.getElementById('counter')
+    const gameAreaTextContainer = document.getElementById('game-text-container')
 
     const targetX = gameArea.clientWidth * (0.3 + Math.random() * 0.3);
     const targetY = gameArea.clientHeight - iceCubeRect.height - 10
@@ -354,11 +390,11 @@
         app.game.incrementIcesCaptured()
         if (app.game.hasWin()) {
           clearInterval(interval)
-          displayMessage("!Fin!")
+          displayMessage("!Ganaste 🥳!")
           const historias = ["La maquina de hielo se averió! HAS GANADO"]
-          gameAreaTextPlaceholder.innerHTML = historias[Math.floor(Math.random() * historias.length)]
-          gameAreaTextPlaceholder.classList.remove("fade-out");
-          gameAreaTextPlaceholder.classList.add("fade-in");
+          gameAreaTextContainer.innerHTML = historias[Math.floor(Math.random() * historias.length)]
+          gameAreaTextContainer.classList.remove("fade-out");
+          gameAreaTextContainer.classList.add("fade-in");
           if (app.soundAllowed) {
             playRandomWinEndingSound()
           }
@@ -464,11 +500,11 @@
       }
       if (app.game.hasLost()) {
         clearInterval(interval)
-        displayMessage("!Fin!")
+        displayMessage("!Perdiste 😫!")
         const historias = ["Se picó y se fue la chota!","Se pudrió de tomar con niños", "Se picó y se volando en su yacuzi"]
-        gameAreaTextPlaceholder.innerHTML = historias[Math.floor(Math.random() * historias.length)]
-        gameAreaTextPlaceholder.classList.remove("fade-out");
-        gameAreaTextPlaceholder.classList.add("fade-in");
+        gameAreaTextContainer.innerHTML = historias[Math.floor(Math.random() * historias.length)]
+        gameAreaTextContainer.classList.remove("fade-out");
+        gameAreaTextContainer.classList.add("fade-in");
         if (app.soundAllowed) {
           playRandomLossEndingSound()
         }
@@ -496,27 +532,27 @@
     }
 
     function startGameCountdown(secondsToStart) {
-      gameAreaTextPlaceholder.innerText = secondsToStart
-      gameAreaTextPlaceholder.classList.remove("fade-out");
-      gameAreaTextPlaceholder.classList.add("fade-in");
+      gameAreaTextContainer.innerText = secondsToStart
+      gameAreaTextContainer.classList.remove("fade-out");
+      gameAreaTextContainer.classList.add("fade-in");
       let gameStartInterval = setInterval(() => {
         secondsToStart--
         if (secondsToStart == 0) {
-          gameAreaTextPlaceholder.classList.remove("fade-in");
-          gameAreaTextPlaceholder.classList.add("fade-out");
+          gameAreaTextContainer.classList.remove("fade-in");
+          gameAreaTextContainer.classList.add("fade-out");
           clearInterval(gameStartInterval)
           startGame()
           setTimeout(() => {
-            gameAreaTextPlaceholder.innerText = ""
+            gameAreaTextContainer.innerText = ""
           }, 500)
         }
-        gameAreaTextPlaceholder.innerText = secondsToStart
+        gameAreaTextContainer.innerText = secondsToStart
       }, 1000)
       initImage();
     }
 
     function startGame() {
-      displayMessage("A jugar!")
+      displayMessage("¡A jugar 🤠!")
       app.game.start()
       initImage();
       document.querySelectorAll(".hiddeable-text").forEach((e) => e.classList.add("fade-out"))
@@ -535,7 +571,7 @@
     }
 
     function throwAnItem() {
-      const mustThrowMeatCube = Math.random() <= 0.1
+      const mustThrowMeatCube = Math.random() <= 0.05
       if (mustThrowMeatCube) {
         throwMeatCube()
       } else {
