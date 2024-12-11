@@ -387,22 +387,12 @@
           gameArea.removeChild(iceCube);
         }, 500);
 
-        app.game.incrementIcesCaptured()
-        if (app.game.hasWin()) {
-          clearInterval(interval)
-          displayMessage("!Ganaste 🥳!")
-          const historias = ["La maquina de hielo se averió! HAS GANADO"]
-          gameAreaTextContainer.innerHTML = historias[Math.floor(Math.random() * historias.length)]
-          gameAreaTextContainer.classList.remove("fade-out");
-          gameAreaTextContainer.classList.add("fade-in");
+        const wasIceCaptured = app.game.incrementIcesCaptured()
+        if (wasIceCaptured) {
           if (app.soundAllowed) {
-            playRandomWinEndingSound()
+            playRandomIceCapturedSound()
           }
-          target.classList.add("fade-out")
         }
-        renderScoreToUI()
-        updateInterval()
-
         const incidiousScore = 30
         if (app.game.icesCaptured >= incidiousScore && !incidious.dataset.flag) {
           incidious.dataset.flag = true
@@ -417,6 +407,21 @@
             playRandomLevelUp()
           }
         }
+
+        if (app.game.hasWin()) {
+          clearInterval(interval)
+          displayMessage("!Ganaste 🥳!")
+          const historias = ["La maquina de hielo se averió! HAS GANADO"]
+          gameAreaTextContainer.innerHTML = historias[Math.floor(Math.random() * historias.length)]
+          gameAreaTextContainer.classList.remove("fade-out");
+          gameAreaTextContainer.classList.add("fade-in");
+          if (app.soundAllowed) {
+            playRandomWinEndingSound()
+          }
+          target.classList.add("fade-out")
+        }
+        renderScoreToUI()
+        updateInterval()
       }
     }
 
@@ -581,26 +586,37 @@
   </script>
   <script>
     const waterSoundsCount = 3
-    var Sounds = {}
-    Sounds.waterDrops = []
-    Sounds.endings = []
+    const waterDropSounds = []
     for (let i = 0; i < waterSoundsCount; i++) {
-      Sounds.waterDrops[i] = new Audio(`water_drop_${i}.mp3`);
+      waterDropSounds[i] = new Audio(`water_drop_${i}.mp3`);
     }
     function playRandomWaterDropSound() {
       const randomIndex = Math.floor(Math.random() * waterSoundsCount);
-      Sounds.waterDrops[randomIndex].currentTime = 0;
-      Sounds.waterDrops[randomIndex].play();
+      waterDropSounds[randomIndex].currentTime = 0;
+      waterDropSounds[randomIndex].play();
     }
 
+    const iceCapturedSoundsCount = 3
+    const iceCapturedSounds = []
+    for (let i = 0; i < iceCapturedSoundsCount; i++) {
+      iceCapturedSounds[i] = new Audio(`hit_rock_${i}.mp3`);
+    }
+    function playRandomIceCapturedSound() {
+      const randomIndex = Math.floor(Math.random() * iceCapturedSoundsCount);
+      iceCapturedSounds[randomIndex].currentTime = 0;
+      iceCapturedSounds[randomIndex].play();
+    }
+
+
+    const endings = []
     const lossEndingSoundsCount = 2
     for (let i = 0; i < lossEndingSoundsCount; i++) {
-      Sounds.endings[i] = new Audio(`ending_${i}.mp3`);
+      endings[i] = new Audio(`ending_${i}.mp3`);
     }
     function playRandomLossEndingSound() {
       const randomIndex = Math.floor(Math.random() * lossEndingSoundsCount);
-      Sounds.endings[randomIndex].currentTime = 0;
-      Sounds.endings[randomIndex].play();
+      endings[randomIndex].currentTime = 0;
+      endings[randomIndex].play();
     }
 
     const winEndingSound = new Audio(`win.mp3`)
