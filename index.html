@@ -19,8 +19,8 @@
     }
 
     #game-area {
-      width: 80vw;
-      height: 30vh;
+      width: 90vw;
+      height: 40vh;
       background-color: lightblue;
       display: flex;
       justify-content: center;
@@ -134,9 +134,10 @@
   <div id="debug-container">
     <span id="debug">
     </span>
-    <button id="kill-all">KILL ALL</button>
+    <button id="kill-all">☢️</button>
     <script>
-      document.getElementById("kill-all").addEventListener("click", () => {
+      const killAll = document.getElementById("kill-all")
+      killAll.addEventListener("click", () => {
         document.querySelectorAll(".ice-cube").forEach((e) => e.click())
       })
     </script>
@@ -157,10 +158,10 @@
     // initalization code
 
     const itemSpawnDelayByIcesCaptured = {
-      0: 3000,
-      1: 2500,
-      5: 2000,
-      10: 1000,
+      0: 2000,
+      2: 1500,
+      6: 1000,
+      10: 750,
       20: 500,
     }
     const iceThrownDurationByIcesCaptured = {
@@ -317,9 +318,14 @@
         iceCube.removeEventListener('click', onIceCubeClick);
         iceCube.style.transition = 'opacity 0.5s ease-out';
         iceCube.style.opacity = '0';
+        setTimeout(() => {
+          gameArea.removeChild(iceCube);
+        }, 500);
 
         app.game.icesCaptured++;
-        scoreDisplay.innerHTML = `<span>${app.game.icesCaptured} x 🧊</span><br/><span>${app.game.meatsCaptured} x 🥩</span>`;
+        applyScoreToGame()
+        updateInterval()
+
         const incidiousScore = 30
         if (app.game.icesCaptured >= incidiousScore && !incidious.dataset.flag) {
           incidious.dataset.flag = true
@@ -328,17 +334,12 @@
           setTimeout(() => {
             incidious.classList.remove("fade-in");
             incidious.classList.add("fade-out");
-          }, 2000);
+          }, 3000);
 
           if (app.soundAllowed) {
             playRandomLevelUp()
           }
         }
-
-        setTimeout(() => {
-          gameArea.removeChild(iceCube);
-        }, 500);
-        updateInterval()
       }
     }
 
@@ -381,7 +382,7 @@
         meatCube.style.opacity = '0';
         if (!app.game.hasEnd) {
           app.game.meatsCaptured++;
-          scoreDisplay.innerHTML = `<span>${app.game.icesCaptured} x 🧊</span><br/><span>${app.game.meatsCaptured} x 🥩</span>`;
+          applyScoreToGame()
           if (app.soundAllowed) {
             playRandomBonus()
           }
@@ -394,6 +395,14 @@
           gameArea.removeChild(meatCube);
         }, 500);
       }
+    }
+
+    function applyScoreToGame() {
+      var meatsCapturedHTML = ""
+      if (app.game.meatsCaptured > 0) {
+        meatsCapturedHTML = `<br/><span>${app.game.meatsCaptured} x 🥩</span>`
+      }
+      scoreDisplay.innerHTML = `<span>${app.game.icesCaptured} x 🧊</span>` + meatsCapturedHTML;
     }
 
     const movingImage = document.getElementById('moving-image');
@@ -508,7 +517,7 @@
       Sounds.waterDrops[randomIndex].play();
     }
 
-    const endingSoundsCount = 2
+    const endingSoundsCount = 3
     for (let i = 0; i < endingSoundsCount; i++) {
       Sounds.endings[i] = new Audio(`ending_${i}.mp3`);
     }
