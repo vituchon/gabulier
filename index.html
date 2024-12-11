@@ -165,13 +165,12 @@
       20: 500,
     }
     const iceThrownDurationByIcesCaptured = {
-      0: 4000,
-      1: 3500,
-      5: 3000,
-      10: 2500,
-      20: 2000,
-      30: 1500,
-      40: 1000,
+      0: 3000,
+      1: 3000,
+      5: 2500,
+      10: 2000,
+      20: 1500,
+      30: 1000,
     }
     const app = {
       soundAllowed: true,
@@ -558,7 +557,7 @@
       Sounds.waterDrops[randomIndex].play();
     }
 
-    const lossEndingSoundsCount = 3
+    const lossEndingSoundsCount = 2
     for (let i = 0; i < lossEndingSoundsCount; i++) {
       Sounds.endings[i] = new Audio(`ending_${i}.mp3`);
     }
