@@ -150,6 +150,28 @@
       background: linear-gradient(135deg, #ff607e, #ff758c);
     }
 
+
+
+    #ice-machine-image-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    #ice-machine-image-container img {
+      height: 4em;
+      object-fit: cover;
+    }
+
+    #ice-machine-image-container .color-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: calc(var(--ice-machine-color-step, 0) * 3.3%);
+      background-color: red;
+      mix-blend-mode: multiply;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -160,6 +182,12 @@
   </div>
   <div id="score-container">
     <span id="score">
+      <div id="ice-machine-image-container">
+        <img src="./ice_machine.png">
+        <div class="color-overlay"></div>
+      </div><br/>
+      <span id="ices-captured-counter"></span><br/>
+      <span id="meats-captured-counter"></span><br/>
     </span>
   </div>
   <div id="debug-container">
@@ -178,8 +206,7 @@
   <div id="game-area">
     <div id="game-description">
       <span class="hiddeable-text"><i>Pero no le pongas hielo al vino!</i> 😤</span>
-      <span class="hiddeable-text">Aparta los hielos (🧊) de la copa (🍷) tocandolos (👆🏿)</span>
-      <span class="hiddeable-text">Tenés que vencer a la máquina de hielos</span>
+      <span class="hiddeable-text">Aparta los hielos (🧊) de la copa tocándolos</span>
       <span class="hiddeable-text">El buen gusto y la puntería importan</span>
       <button id="start-countdown">Comenzar</button>
     </div>
@@ -203,22 +230,22 @@
       1: 3000,
       5: 2500,
       10: 2000,
-      20: 1500,
-      30: 1000,
+      15: 1500,
+      20: 1000,
     }
     const app = {
       soundAllowed: true,
       game: {
         currentIcesOnWine: 0, // would be the player current "life"
         maxIcesOnWine: 10,    // would be the player max "life"
-        requiredCapturedIcesToWin: 50,
+        requiredCapturedIcesToWin: 30,
         icesCaptured: 0,
         meatsCaptured: 0,
         status: "ready",
         start: function() {
-          this.currentIcesOnWine = 0,
-          this.icesCaptured = 0,
-          this.meatsCaptured = 0,
+          this.currentIcesOnWine = 0
+          this.icesCaptured = 0
+          this.meatsCaptured = 0
           this.status = "playing"
         },
         hasEnd() {
@@ -334,8 +361,6 @@
     target.style.left = `${targetX}px`;
     target.style.top = `${targetY}px`;
 
-    const scoreDisplay = document.getElementById('score');
-
     function throwIceCube() {
       const iceCube = document.createElement('div');
       iceCube.className = 'ice-cube';
@@ -393,7 +418,7 @@
             playRandomIceCapturedSound()
           }
         }
-        const incidiousScore = 30
+        const incidiousScore = 20
         if (app.game.icesCaptured >= incidiousScore && !incidious.dataset.flag) {
           incidious.dataset.flag = true
           incidious.classList.remove("fade-out");
@@ -470,7 +495,7 @@
           }
           if (app.game.currentIcesOnWine > 0) {
             app.game.currentIcesOnWine--
-            moveImage(app.game.currentIcesOnWine, originalImageSrc)
+            moveGabuImage(app.game.currentIcesOnWine, originalImageSrc)
           }
         }
         setTimeout(() => {
@@ -480,11 +505,11 @@
     }
 
     function renderScoreToUI() {
-      var meatsCapturedHTML = ""
       if (app.game.meatsCaptured > 0) {
-        meatsCapturedHTML = `<br/><span>${app.game.meatsCaptured} x 🥩</span>`
+        document.getElementById("meats-captured-counter").innerText = `${app.game.meatsCaptured} x 🥩`
       }
-      scoreDisplay.innerHTML = `<span>${app.game.icesCaptured} x 🧊</span>` + meatsCapturedHTML;
+      document.getElementById("ices-captured-counter").innerText = `${app.game.icesCaptured} x 🧊`
+      document.querySelector('.color-overlay').style.setProperty('--ice-machine-color-step', app.game.icesCaptured);
     }
 
     const movingImage = document.getElementById('moving-image');
@@ -498,7 +523,7 @@
       }
       const icesOnWineIncremented = app.game.incrementIcesOnWine()
       if (icesOnWineIncremented) {
-        moveImage(app.game.currentIcesOnWine, movingFowardImageSrc)
+        moveGabuImage(app.game.currentIcesOnWine, movingFowardImageSrc)
         if (app.soundAllowed) {
           playRandomWaterDropSound()
         }
@@ -525,13 +550,13 @@
         movingImage.style.transform = `translateX(${window.innerWidth}px)`;
       }
     });
-    function moveImage(step, imageSrc) {
+    function moveGabuImage(step, imageSrc) {
       const newPosition = stepDistance * step;
       movingImage.src = imageSrc;
       movingImage.style.transform = `translateX(${newPosition}px)`;
     }
 
-    function initImage() {
+    function initGabuImage() {
       movingImage.style.left =`${gameAreaRect.x}px`;
       movingImage.style.top =`${gameAreaRect.y + gameAreaRect.height}px`;
     }
@@ -553,13 +578,14 @@
         }
         gameAreaTextContainer.innerText = secondsToStart
       }, 1000)
-      initImage();
+      initGabuImage();
     }
+
 
     function startGame() {
       displayMessage("¡A jugar 🤠!")
       app.game.start()
-      initImage();
+      initGabuImage();
       document.querySelectorAll(".hiddeable-text").forEach((e) => e.classList.add("fade-out"))
       throwIceCube()
       interval = setInterval(throwAnItem, app.game.determineItemSpawnDelay());
@@ -606,7 +632,6 @@
       iceCapturedSounds[randomIndex].currentTime = 0;
       iceCapturedSounds[randomIndex].play();
     }
-
 
     const endings = []
     const lossEndingSoundsCount = 2
