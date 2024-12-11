@@ -20,7 +20,7 @@
 
     #game-area {
       width: 90vw;
-      height: 40vh;
+      height: 70vh;
       background-color: lightblue;
       display: flex;
       justify-content: center;
@@ -146,7 +146,7 @@
   <span class="hiddeable-text"><i>Pero no le pongas hielo al vino!</i> 😤</span>
   <span class="hiddeable-text">Aparta los hielos de la copa haciendo <b>click</b> sobre ellos</span>
   <span class="hiddeable-text">El buen gusto y la puntería importan!</span>
-  <span id="insidious" class="fade-out">El hielero se puso <b>incidioso</b></span>
+  <span id="insidious" class="fade-out">La máquina de hielo se puso <b>incidiosa</b></span>
   <div id="game-area">
     <div id="target" class="target">🍷</div>
     <button id="start-countdown">Comenzar</button>
@@ -178,14 +178,44 @@
       game: {
         currentIcesOnWine: 0, // would be the player current "life"
         maxIcesOnWine: 10,    // would be the player max "life"
+        requiredCapturedIcesToWin: 50,
         icesCaptured: 0,
         meatsCaptured: 0,
-        hasEnd: false,
-        init: function() {
+        status: "ready",
+        start: function() {
           this.currentIcesOnWine = 0,
           this.icesCaptured = 0,
           this.meatsCaptured = 0,
-          this.hasEnd = false
+          this.status = "playing"
+        },
+        hasEnd() {
+          return this.status.startsWith("finished")
+        },
+        hasLost() {
+          return this.status === "finished_loss"
+        },
+        hasWin() {
+          return this.status === "finished_win"
+        },
+        incrementIcesOnWine: function() {
+          if (this.currentIcesOnWine < this.maxIcesOnWine) {
+            this.currentIcesOnWine++
+            const hastLost = this.currentIcesOnWine == this.maxIcesOnWine
+            if (hastLost) {
+              this.status = "finished_loss"
+            }
+            return true
+          }
+          return false
+        },
+        incrementIcesCaptured: function () {
+          if (this.icesCaptured < this.requiredCapturedIcesToWin) {
+            this.icesCaptured++;
+            const hasWin = this.icesCaptured == this.requiredCapturedIcesToWin
+            if (hasWin) {
+              this.status = "finished_win"
+            }
+          }
         },
         determineItemSpawnDelay: function() {
           var last = 0
@@ -322,8 +352,20 @@
           gameArea.removeChild(iceCube);
         }, 500);
 
-        app.game.icesCaptured++;
-        applyScoreToGame()
+        app.game.incrementIcesCaptured()
+        if (app.game.hasWin()) {
+          clearInterval(interval)
+          displayMessage("!Fin!")
+          const historias = ["La maquina de hielo se averió! HAS GANADO"]
+          gameAreaTextPlaceholder.innerHTML = historias[Math.floor(Math.random() * historias.length)]
+          gameAreaTextPlaceholder.classList.remove("fade-out");
+          gameAreaTextPlaceholder.classList.add("fade-in");
+          if (app.soundAllowed) {
+            playRandomWinEndingSound()
+          }
+          target.classList.add("fade-out")
+        }
+        renderScoreToUI()
         updateInterval()
 
         const incidiousScore = 30
@@ -380,9 +422,9 @@
         meatCube.removeEventListener('click', onMeatCubeClick);
         meatCube.style.transition = 'opacity 0.5s ease-out';
         meatCube.style.opacity = '0';
-        if (!app.game.hasEnd) {
+        if (!app.game.hasEnd()) {
           app.game.meatsCaptured++;
-          applyScoreToGame()
+          renderScoreToUI()
           if (app.soundAllowed) {
             playRandomBonus()
           }
@@ -397,7 +439,7 @@
       }
     }
 
-    function applyScoreToGame() {
+    function renderScoreToUI() {
       var meatsCapturedHTML = ""
       if (app.game.meatsCaptured > 0) {
         meatsCapturedHTML = `<br/><span>${app.game.meatsCaptured} x 🥩</span>`
@@ -411,26 +453,25 @@
     const totalDistance = gameAreaRect.width - movingImageRect.width;
     const stepDistance = totalDistance / app.game.maxIcesOnWine;
     function onIceCubeLand() {
-      if (app.game.hasEnd) {
+      if (app.game.hasEnd()) {
         return
       }
-      if (app.game.currentIcesOnWine < app.game.maxIcesOnWine) {
-        app.game.currentIcesOnWine++
+      const icesOnWineIncremented = app.game.incrementIcesOnWine()
+      if (icesOnWineIncremented) {
         moveImage(app.game.currentIcesOnWine, movingFowardImageSrc)
         if (app.soundAllowed) {
           playRandomWaterDropSound()
         }
-        app.game.hasEnd = app.game.currentIcesOnWine == app.game.maxIcesOnWine
       }
-      if (app.game.hasEnd) {
+      if (app.game.hasLost()) {
         clearInterval(interval)
-        displayMessage("!Fin! 😱")
+        displayMessage("!Fin!")
         const historias = ["Se picó y se fue la chota!","Se pudrió de tomar con niños", "Se picó y se volando en su yacuzi"]
         gameAreaTextPlaceholder.innerHTML = historias[Math.floor(Math.random() * historias.length)]
         gameAreaTextPlaceholder.classList.remove("fade-out");
         gameAreaTextPlaceholder.classList.add("fade-in");
         if (app.soundAllowed) {
-          playRandomEndingSound()
+          playRandomLossEndingSound()
         }
         target.classList.add("fade-out")
       }
@@ -440,7 +481,7 @@
     const originalImageSrc = movingImage.src;
     movingImage.addEventListener("transitionend", () => {
       movingImage.src = originalImageSrc;
-      if (app.game.hasEnd) {
+      if (app.game.hasLost()) {
         movingImage.style.transform = `translateX(${window.innerWidth}px)`;
       }
     });
@@ -476,8 +517,8 @@
     }
 
     function startGame() {
-      app.game.init()
       displayMessage("A jugar!")
+      app.game.start()
       initImage();
       document.querySelectorAll(".hiddeable-text").forEach((e) => e.classList.add("fade-out"))
       throwIceCube()
@@ -485,7 +526,7 @@
     }
 
     function updateInterval() {
-      if (app.game.hasEnd) {
+      if (app.game.hasEnd()) {
         return
       }
       const delay = app.game.determineItemSpawnDelay()
@@ -517,14 +558,20 @@
       Sounds.waterDrops[randomIndex].play();
     }
 
-    const endingSoundsCount = 3
-    for (let i = 0; i < endingSoundsCount; i++) {
+    const lossEndingSoundsCount = 3
+    for (let i = 0; i < lossEndingSoundsCount; i++) {
       Sounds.endings[i] = new Audio(`ending_${i}.mp3`);
     }
-    function playRandomEndingSound() {
-      const randomIndex = Math.floor(Math.random() * endingSoundsCount);
+    function playRandomLossEndingSound() {
+      const randomIndex = Math.floor(Math.random() * lossEndingSoundsCount);
       Sounds.endings[randomIndex].currentTime = 0;
       Sounds.endings[randomIndex].play();
+    }
+
+    const winEndingSound = new Audio(`win.mp3`)
+    function playRandomWinEndingSound() {
+      winEndingSound.currentTime = 0;
+      winEndingSound.play();
     }
 
     const levelUpSound = new Audio(`level_up.mp3`);
