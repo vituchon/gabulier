@@ -671,32 +671,47 @@
     }
   </script>
   <script>
-    document.addEventListener("click", (event) => {
-      score-and-title-container
+    document.addEventListener("click", handleEvent);
+    document.addEventListener("touchstart", handleEvent);
+
+    function handleEvent(event) {
+      // Determinar las coordenadas dependiendo del evento
+      let x, y;
+      if (event.type === "touchstart") {
+        const touch = event.touches[0]; // Tomar la primera interacción
+        x = touch.clientX;
+        y = touch.clientY;
+      } else {
+        x = event.clientX;
+        y = event.clientY;
+      }
+
+      // Crear el elemento círculo
       const circle = document.createElement("div");
       circle.style.position = "absolute";
-      circle.style.width = "10px"; score-and-title-container
+      circle.style.width = "10px"; // Radio de 5px = diámetro de 10px
       circle.style.height = "10px";
       circle.style.borderRadius = "50%";
       circle.style.backgroundColor = "rgba(255, 0, 0, 0.8)";
-      circle.style.left = `${event.clientX - 5}px`; score-and-title-container
-      circle.style.top = `${event.clientY - 5}px`;
-      circle.style.pointerEvents = "none"; score-and-title-container
+      circle.style.left = `${x - 5}px`; // Centrar el círculo
+      circle.style.top = `${y - 5}px`;
+      circle.style.pointerEvents = "none"; // Ignorar eventos para este elemento
       circle.style.transition = "opacity 0.3s ease, transform 0.3s ease";
 
-      score-and-title-container
+      // Añadir el círculo al cuerpo
       document.body.appendChild(circle);
 
-      score-and-title-container
+      // Desvanecer el círculo y eliminarlo después
       setTimeout(() => {
         circle.style.opacity = "0";
         circle.style.transform = "scale(1.5)";
-      }, 10); score-and-title-container
+      }, 10); // Pequeña demora para que el CSS tome efecto
 
       setTimeout(() => {
         circle.remove();
-      }, 310); score-and-title-container
-    });
+      }, 310); // Coincidir con la duración de la transición
+    }
+
   </script>
 </body>
 </html>
