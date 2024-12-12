@@ -670,5 +670,33 @@
       bonusSound.play();
     }
   </script>
+  <script>
+    document.addEventListener("click", (event) => {
+      score-and-title-container
+      const circle = document.createElement("div");
+      circle.style.position = "absolute";
+      circle.style.width = "10px"; score-and-title-container
+      circle.style.height = "10px";
+      circle.style.borderRadius = "50%";
+      circle.style.backgroundColor = "rgba(255, 0, 0, 0.8)";
+      circle.style.left = `${event.clientX - 5}px`; score-and-title-container
+      circle.style.top = `${event.clientY - 5}px`;
+      circle.style.pointerEvents = "none"; score-and-title-container
+      circle.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+
+      score-and-title-container
+      document.body.appendChild(circle);
+
+      score-and-title-container
+      setTimeout(() => {
+        circle.style.opacity = "0";
+        circle.style.transform = "scale(1.5)";
+      }, 10); score-and-title-container
+
+      setTimeout(() => {
+        circle.remove();
+      }, 310); score-and-title-container
+    });
+  </script>
 </body>
 </html>
