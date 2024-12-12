@@ -407,6 +407,7 @@
         iceCube.removeEventListener('click', onIceCubeClick);
         iceCube.style.transition = 'opacity 0.5s ease-out';
         iceCube.style.opacity = '0';
+        iceCube.dataset.clicked = true
         setTimeout(() => {
           gameArea.removeChild(iceCube);
         }, 500);
@@ -446,6 +447,32 @@
         }
         renderScoreToUI()
         updateInterval()
+      }
+
+      function onIceCubeLand() {
+        console.log(iceCube.dataset.clicked)
+        if (app.game.hasEnd() || iceCube.dataset.clicked) {
+          return
+        }
+        const icesOnWineIncremented = app.game.incrementIcesOnWine()
+        if (icesOnWineIncremented) {
+          moveGabuImage(app.game.currentIcesOnWine, movingFowardImageSrc)
+          if (app.soundAllowed) {
+            playRandomWaterDropSound()
+          }
+        }
+        if (app.game.hasLost()) {
+          clearInterval(interval)
+          displayMessage("!Perdiste 😫!")
+          const historias = ["Se picó y se fue la chota!","Se pudrió de tomar con niños", "Se picó y se volando en su yacuzi"]
+          gameAreaTextContainer.innerHTML = historias[Math.floor(Math.random() * historias.length)]
+          gameAreaTextContainer.classList.remove("fade-out");
+          gameAreaTextContainer.classList.add("fade-in");
+          if (app.soundAllowed) {
+            playRandomLossEndingSound()
+          }
+          target.classList.add("fade-out")
+        }
       }
     }
 
@@ -516,30 +543,6 @@
     const gameAreaRect = gameArea.getBoundingClientRect();
     const totalDistance = gameAreaRect.width - movingImageRect.width;
     const stepDistance = totalDistance / app.game.maxIcesOnWine;
-    function onIceCubeLand() {
-      if (app.game.hasEnd()) {
-        return
-      }
-      const icesOnWineIncremented = app.game.incrementIcesOnWine()
-      if (icesOnWineIncremented) {
-        moveGabuImage(app.game.currentIcesOnWine, movingFowardImageSrc)
-        if (app.soundAllowed) {
-          playRandomWaterDropSound()
-        }
-      }
-      if (app.game.hasLost()) {
-        clearInterval(interval)
-        displayMessage("!Perdiste 😫!")
-        const historias = ["Se picó y se fue la chota!","Se pudrió de tomar con niños", "Se picó y se volando en su yacuzi"]
-        gameAreaTextContainer.innerHTML = historias[Math.floor(Math.random() * historias.length)]
-        gameAreaTextContainer.classList.remove("fade-out");
-        gameAreaTextContainer.classList.add("fade-in");
-        if (app.soundAllowed) {
-          playRandomLossEndingSound()
-        }
-        target.classList.add("fade-out")
-      }
-    }
 
     const movingFowardImageSrc = "./gabushock.png"
     const originalImageSrc = movingImage.src;
@@ -597,6 +600,7 @@
       initGabuImage();
       throwIceCube()
       interval = setInterval(throwAnItem, app.game.determineItemSpawnDelay());
+      markClickLocation()
     }
 
     function updateInterval() {
@@ -671,45 +675,42 @@
     }
   </script>
   <script>
-    document.addEventListener("click", handleEvent);
-    document.addEventListener("touchstart", handleEvent);
+    function markClickLocation() {
+      document.addEventListener("click", handleEvent);
+      document.addEventListener("touchstart", handleEvent);
 
-    function handleEvent(event) {
-      // Determinar las coordenadas dependiendo del evento
-      let x, y;
-      if (event.type === "touchstart") {
-        const touch = event.touches[0]; // Tomar la primera interacción
-        x = touch.clientX;
-        y = touch.clientY;
-      } else {
-        x = event.clientX;
-        y = event.clientY;
+      function handleEvent(event) {
+        let x, y;
+        if (event.type === "touchstart") {
+          const touch = event.touches[0];
+          x = touch.clientX;
+          y = touch.clientY;
+        } else {
+          x = event.clientX;
+          y = event.clientY;
+        }
+
+        const circle = document.createElement("div");
+        circle.style.position = "absolute";
+        circle.style.width = "10px";
+        circle.style.height = "10px";
+        circle.style.borderRadius = "50%";
+        circle.style.backgroundColor = "rgba(255, 0, 0, 0.8)";
+        circle.style.left = `${x - 5}px`;
+        circle.style.top = `${y - 5}px`;
+        circle.style.pointerEvents = "none";
+        circle.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+        document.body.appendChild(circle);
+
+        setTimeout(() => {
+          circle.style.opacity = "0";
+          circle.style.transform = "scale(1.5)";
+        }, 10);
+
+        setTimeout(() => {
+          circle.remove();
+        }, 310);
       }
-
-      // Crear el elemento círculo
-      const circle = document.createElement("div");
-      circle.style.position = "absolute";
-      circle.style.width = "10px"; // Radio de 5px = diámetro de 10px
-      circle.style.height = "10px";
-      circle.style.borderRadius = "50%";
-      circle.style.backgroundColor = "rgba(255, 0, 0, 0.8)";
-      circle.style.left = `${x - 5}px`; // Centrar el círculo
-      circle.style.top = `${y - 5}px`;
-      circle.style.pointerEvents = "none"; // Ignorar eventos para este elemento
-      circle.style.transition = "opacity 0.3s ease, transform 0.3s ease";
-
-      // Añadir el círculo al cuerpo
-      document.body.appendChild(circle);
-
-      // Desvanecer el círculo y eliminarlo después
-      setTimeout(() => {
-        circle.style.opacity = "0";
-        circle.style.transform = "scale(1.5)";
-      }, 10); // Pequeña demora para que el CSS tome efecto
-
-      setTimeout(() => {
-        circle.remove();
-      }, 310); // Coincidir con la duración de la transición
     }
 
   </script>
