@@ -6,7 +6,7 @@
   <link rel="stylesheet" type="text/css" href="./toastr.css">
   <script type="text/javascript" src="./toastr.js"></script>
 
-  <title>Gabulier</title>
+  <title>Operation: Save the vino</title>
   <style>
     html, body {
       height: 100%;
@@ -55,11 +55,11 @@
       position: absolute;
       font-size: 2em;
       color: palevioletred;
-      transition: all 2s ease-out;
+      transition: all 2s ease-in-out;;
     }
 
     .hiddeable-text {
-      transition: all 2s ease-in-out;
+      transition: all 0.5s ease-in-out;
     }
 
     #insidious {
@@ -75,7 +75,7 @@
       opacity: 0;
     }
 
-    #sound-button-container, #about-button-container, #score-container, #debug-container  {
+    #sound-button-container, #about-button-container, #score-and-title-container, #debug-container  {
       position: fixed;
       z-index: 1000;
     }
@@ -85,7 +85,7 @@
       right: 10px;
     }
 
-    #score-container {
+    #score-and-title-container {
       top:10px;
       font-size: 1.2em;
       color: palevioletred;
@@ -150,8 +150,6 @@
       background: linear-gradient(135deg, #ff607e, #ff758c);
     }
 
-
-
     #ice-machine-image-container {
       position: relative;
       display: inline-block;
@@ -172,6 +170,10 @@
       mix-blend-mode: multiply;
       pointer-events: none;
     }
+
+    #score {
+      transition: all 2s ease-in-out;
+    }
   </style>
 </head>
 <body>
@@ -180,8 +182,9 @@
       🔊 Sonido
     </button>
   </div>
-  <div id="score-container">
-    <span id="score">
+  <div id="score-and-title-container">
+    <h1 id="game-title" class="hiddeable-text">Operation: Save the vino</h1>
+    <span id="score" class="fade-out">
       <div id="ice-machine-image-container">
         <img src="./ice_machine.png">
         <div class="color-overlay"></div>
@@ -190,10 +193,10 @@
       <span id="meats-captured-counter"></span><br/>
     </span>
   </div>
-  <div id="debug-container" style="display: none;">
+  <div id="debug-container" style="display: block;">
     <span id="debug">
     </span>
-    <button id="kill-all">☢️</button>
+    <button id="kill-all" style="font-size: 1.5em;">☀️</button>
     <script>
       const killAll = document.getElementById("kill-all")
       killAll.addEventListener("click", () => {
@@ -207,6 +210,7 @@
     <div id="game-description">
       <span class="hiddeable-text"><i>Pero no le pongas hielo al vino!</i> 😤</span>
       <span class="hiddeable-text">Aparta los hielos (🧊) de la copa tocándolos</span>
+      <!--<span class="hiddeable-text">El sol (☀️) los derrite a todos, tenés solo 1</span>-->
       <span class="hiddeable-text">El buen gusto y la puntería importan</span>
       <button id="start-countdown">Comenzar</button>
     </div>
@@ -237,7 +241,7 @@
       game: {
         currentIcesOnWine: 0, // would be the player current "life"
         maxIcesOnWine: 10,    // would be the player max "life"
-        requiredCapturedIcesToWin: 30,
+        requiredCapturedIcesToWin: 35,
         icesCaptured: 0,
         meatsCaptured: 0,
         status: "ready",
@@ -320,10 +324,6 @@
     startCountdownButton.addEventListener('click', onStartGameCountdownButtonClick);
     function onStartGameCountdownButtonClick() {
       startCountdownButton.removeEventListener('click', onStartGameCountdownButtonClick);
-      startCountdownButton.classList.add("fade-out");
-      setTimeout(() => {
-        startCountdownButton.remove()
-      }, 500);
       startGameCountdown(3)
     }
 
@@ -561,6 +561,13 @@
     }
 
     function startGameCountdown(secondsToStart) {
+      document.querySelectorAll(".hiddeable-text").forEach((e) => e.classList.add("fade-out"))
+      startCountdownButton.classList.add("fade-out");
+      setTimeout(() => {
+        startCountdownButton.remove()
+        document.getElementById("game-title").remove()
+      }, 500);
+
       gameAreaTextContainer.innerText = secondsToStart
       gameAreaTextContainer.classList.remove("fade-out");
       gameAreaTextContainer.classList.add("fade-in");
@@ -583,9 +590,11 @@
 
     function startGame() {
       displayMessage("¡A jugar 🤠!")
+      const scoreElement = document.getElementById("score")
+      scoreElement.classList.remove("fade-out");
+      scoreElement.classList.add("fade-in");
       app.game.start()
       initGabuImage();
-      document.querySelectorAll(".hiddeable-text").forEach((e) => e.classList.add("fade-out"))
       throwIceCube()
       interval = setInterval(throwAnItem, app.game.determineItemSpawnDelay());
     }
