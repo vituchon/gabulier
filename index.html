@@ -75,7 +75,7 @@
       opacity: 0;
     }
 
-    #sound-button-container, #about-button-container, #score-and-title-container, #debug-container  {
+    #sound-button-container, #about-button-container, #score-and-title-container, #debug-and-kill-all-container  {
       position: fixed;
       z-index: 1000;
     }
@@ -91,7 +91,7 @@
       color: palevioletred;
     }
 
-    #debug-container {
+    #debug-and-kill-all-container {
       top:10px;
       left: 10px;
       font-size: 0.5em;
@@ -193,14 +193,14 @@
       <span id="meats-captured-counter"></span><br/>
     </span>
   </div>
-  <div id="debug-container" style="display: block;">
-    <span id="debug">
-    </span>
-    <button id="kill-all" style="font-size: 1.5em;">☀️</button>
+  <div id="debug-and-kill-all-container">
+    <span id="debug"></span>
+    <span id="kill-all" style="font-size: 3em;">☀️</span>
     <script>
       const killAll = document.getElementById("kill-all")
       killAll.addEventListener("click", () => {
         document.querySelectorAll(".ice-cube").forEach((e) => e.click())
+        killAll.remove()
       })
     </script>
   </div>
@@ -208,9 +208,8 @@
   <span id="insidious" class="fade-out">La máquina de hielo se puso <b>incidiosa</b></span>
   <div id="game-area">
     <div id="game-description">
-      <span class="hiddeable-text"><i>Pero no le pongas hielo al vino!</i> 😤</span>
       <span class="hiddeable-text">Aparta los hielos (🧊) de la copa tocándolos</span>
-      <!--<span class="hiddeable-text">El sol (☀️) los derrite a todos, tenés solo 1</span>-->
+      <span class="hiddeable-text">El sol (☀️) los derrite a todos, tenés solo 1</span>
       <span class="hiddeable-text">El buen gusto y la puntería importan</span>
       <button id="start-countdown">Comenzar</button>
     </div>
